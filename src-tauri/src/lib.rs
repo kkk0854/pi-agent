@@ -14,7 +14,7 @@ mod tray;
 mod window;
 
 use std::sync::Mutex;
-use tauri::{Manager, WebviewUrl, WebviewWindowBuilder, WindowEvent};
+use tauri::{Emitter, Manager, WebviewUrl, WebviewWindowBuilder, WindowEvent};
 use notify::DeepLink;
 
 /// 全局「正在退出」标记：区分「关窗到托盘」与「真退出」

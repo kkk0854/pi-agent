@@ -143,9 +143,10 @@ pub fn start_bridge() -> Result<(u16, String), String> {
         .map(|d| d.as_nanos())
         .unwrap_or(0);
     let token = format!("{:x}-{:x}", nanos, std::process::id());
+    let token_for_thread = token.clone();
     std::thread::spawn(move || {
         for stream in listener.incoming().flatten() {
-            handle(stream, &token);
+            handle(stream, &token_for_thread);
         }
     });
     Ok((port, token))
