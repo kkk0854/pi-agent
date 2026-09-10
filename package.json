@@ -1,0 +1,39 @@
+{
+  "name": "pi-agent",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "pi coding agent 的图形化工作台（MIT 开源社区客户端，非 pi/pi-mono 官方产品）",
+  "packageManager": "pnpm@11.22.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "build": "node scripts/build.mjs",
+    "test": "pnpm -r --if-present test",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "lint": "eslint .",
+    "format": "prettier --write \"**/*.{ts,tsx,css,json,mjs}\"",
+    "check-env": "node scripts/check-env.mjs",
+    "sidecar": "node scripts/make-sidecar.mjs",
+    "icons": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/make-icons.ps1",
+    "tauri": "tauri",
+    "tauri:dev": "node scripts/make-sidecar.mjs && tauri dev",
+    "tauri:build": "node scripts/make-sidecar.mjs && pnpm build && tauri build"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.30.0",
+    "@tauri-apps/cli": "^2.11.4",
+    "@types/node": "^22.15.0",
+    "esbuild": "^0.25.12",
+    "eslint": "^9.30.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "jsdom": "^30.0.1",
+    "prettier": "^3.4.2",
+    "tsx": "^4.19.2",
+    "typescript": "~5.8.3",
+    "typescript-eslint": "^8.65.0",
+    "vitest": "^3.2.4"
+  }
+}

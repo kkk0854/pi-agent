@@ -1,0 +1,20 @@
+{"type":"extension_ui_request","id":"fadedc1b-1111-4aaa-8bbb-000000000001","method":"setStatus","statusKey":"mcp","statusText":"\u001b[38;2;138;190;183m🔌 MCP: 3 servers enabled\u001b[39m"}
+{"type":"agent_start"}
+{"type":"turn_start"}
+{"type":"message_start","message":{"id":"msg-1","role":"assistant"}}
+{"type":"message_update","message":{"id":"msg-1","role":"assistant"},"assistantMessageEvent":{"type":"text_start","contentIndex":0,"partial":{"type":"text","text":""}}}
+{"type":"message_update","message":{"id":"msg-1","role":"assistant"},"assistantMessageEvent":{"type":"text_delta","contentIndex":0,"delta":"我先看一下 auth 相关实现…"}}
+{"type":"message_update","message":{"id":"msg-1","role":"assistant"},"assistantMessageEvent":{"type":"thinking_start","contentIndex":1}}
+{"type":"message_update","message":{"id":"msg-1","role":"assistant"},"assistantMessageEvent":{"type":"thinking_delta","contentIndex":1,"delta":"用户想要重构 auth 模块"}}
+{"type":"message_update","message":{"id":"msg-1","role":"assistant"},"assistantMessageEvent":{"type":"toolcall_start","contentIndex":2,"partial":{"type":"toolCall","id":"tc-1","name":"bash"}}}
+{"type":"tool_execution_start","toolCallId":"tc-1","toolName":"bash","args":{"command":"npm test"}}
+{"type":"tool_execution_update","toolCallId":"tc-1","toolName":"bash","args":{"command":"npm test"},"partialResult":{"output":"passed 10 tests"}}
+{"type":"tool_execution_end","toolCallId":"tc-1","toolName":"bash","result":{"exitCode":0},"isError":false}
+{"type":"message_update","message":{"id":"msg-1","role":"assistant"},"assistantMessageEvent":{"type":"text_delta","contentIndex":0,"delta":"测试通过，准备给出方案。"}}
+{"type":"message_update","message":{"id":"msg-1","role":"assistant"},"assistantMessageEvent":{"type":"text_end","contentIndex":0}}
+{"type":"message_end","message":{"id":"msg-1","role":"assistant"}}
+{"type":"turn_end","toolResults":[{"toolCallId":"tc-1"}]}
+{"type":"agent_end","messages":[]}
+{"type":"agent_settled","willRetry":false}
+{"type":"response","id":"h1","command":"get_state","success":true,"data":{"model":{"provider":"my-gateway","id":"gemini-3.7-flash-high"},"thinkingLevel":"high","isStreaming":false,"isCompacting":false,"steeringMode":"all","followUpMode":"all","sessionId":"pi-1","autoCompactionEnabled":true,"messageCount":2,"pendingMessageCount":0}}
+{"type":"not_a_known_frame","foo":1}

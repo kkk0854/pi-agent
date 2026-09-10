@@ -1,0 +1,28 @@
+[package]
+name = "pi-agent-desktop"
+version = "0.1.0"
+description = "pi coding agent 桌面壳（Tauri 2）：sidecar 内嵌 host + 自绘窗控 + 托盘 + 通知 + 钥匙串"
+authors = ["pi-agent community"]
+edition = "2021"
+rust-version = "1.77"
+
+[lib]
+name = "pi_agent_desktop_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = ">=2.10.0, <2.11.0", features = ["tray-icon", "image-png"] }
+tauri-plugin-notification = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+keyring = "3"
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+panic = "abort"
+strip = true

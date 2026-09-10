@@ -1,0 +1,8 @@
+packages:
+  - 'packages/*'
+  - 'extensions/*'
+
+# pnpm 11：构建脚本审批（esbuild 的 postinstall 仅做二进制校验，平台二进制来自子包）
+allowBuilds:
+  core-js: true
+  esbuild: true

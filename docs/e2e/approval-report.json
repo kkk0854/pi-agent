@@ -1,0 +1,16 @@
+{
+  "verdict": "PASS",
+  "pi": {
+    "found": true,
+    "version": "0.85.0",
+    "path": "pi"
+  },
+  "handshake": true,
+  "uiRequestSeen": true,
+  "denyApplied": true,
+  "allowApplied": true,
+  "blockedAfterDeny": true,
+  "fileCreatedAfterAllow": true,
+  "settledSeen": true,
+  "lineCount": 86
+}

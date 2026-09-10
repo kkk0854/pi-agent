@@ -1,0 +1,56 @@
+# T05：Tauri 2 桌面壳云构建（Windows）
+# 产物：.msi（MSI 安装包）+ NSIS portable .exe，上传为 workflow artifacts
+name: tauri-build
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-windows:
+    name: Build Windows bundle
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.22.0
+
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # 加速 Rust 依赖编译（tauri + 全家桶首编 ~15min，缓存后 ~3min）
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      # 串联执行：make-sidecar（esbuild bundle + node.exe 复制）→ pnpm build（前端 dist）→ tauri build
+      # CI runner 自带 stable-x86_64-pc-windows-msvc，rustc host triple 与 sidecar 命名自动匹配
+      - name: Build frontend, sidecar and Tauri bundle
+        run: pnpm tauri:build
+
+      - name: Upload MSI installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: pi-agent-windows-msi
+          path: src-tauri/target/release/bundle/msi/*.msi
+          if-no-files-found: error
+
+      - name: Upload NSIS portable exe
+        uses: actions/upload-artifact@v4
+        with:
+          name: pi-agent-windows-nsis
+          path: src-tauri/target/release/bundle/nsis/*.exe
+          if-no-files-found: error

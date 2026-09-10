@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "note": "pi-agent 默认危险命令清单（PRD §7.9.1 八类）。pattern 为 JS 正则来源，对 bash/powershell 命令与 write/edit 目标路径做匹配。自定义规则与项目级覆盖由 host CRUD API 维护，存储在 appData/dangerous-custom.json。",
+  "patterns": [
+    { "id": "delete-recursive", "category": "删除 / 破坏性", "pattern": "rm\\s+[^\\n]*(-[a-zA-Z]*r[a-zA-Z]*f|-[a-zA-Z]*f[a-zA-Z]*r|--recursive|--force)", "description": "递归/强制删除" },
+    { "id": "delete-plain-rm", "category": "删除 / 破坏性", "pattern": "rm\\s+-[a-zA-Z]*r", "description": "递归删除" },
+    { "id": "del-win", "category": "删除 / 破坏性", "pattern": "del\\s+/[sqs]", "description": "Windows 递归删除" },
+    { "id": "remove-item", "category": "删除 / 破坏性", "pattern": "Remove-Item\\s+[^\\n]*-Recurse", "description": "PowerShell 递归删除" },
+    { "id": "git-clean", "category": "Git 破坏性", "pattern": "git\\s+clean\\s+-[a-zA-Z]*[fd]", "description": "git clean 清理未跟踪文件" },
+    { "id": "git-push-force", "category": "Git 破坏性", "pattern": "git\\s+push\\s+[^\\n]*(-f|--force)", "description": "强制推送改写远端历史" },
+    { "id": "git-reset-hard", "category": "Git 破坏性", "pattern": "git\\s+reset\\s+--hard", "description": "丢弃本地改动" },
+    { "id": "git-checkout-dot", "category": "Git 破坏性", "pattern": "git\\s+checkout\\s+\\.", "description": "丢弃全部工作区改动" },
+    { "id": "git-branch-d", "category": "Git 破坏性", "pattern": "git\\s+branch\\s+-[dD]", "description": "删除分支" },
+    { "id": "privilege-sudo", "category": "权限提升", "pattern": "\\bsudo\\b", "description": "提权执行" },
+    { "id": "privilege-runas", "category": "权限提升", "pattern": "\\brunas\\b", "description": "Windows 提权执行" },
+    { "id": "privilege-chmod", "category": "权限提升", "pattern": "chmod\\s+777", "description": "开放全部权限" },
+    { "id": "sys-write-windows", "category": "系统 / 项目外写入", "pattern": "C:\\\\Windows", "description": "写入系统目录" },
+    { "id": "sys-write-etc", "category": "系统 / 项目外写入", "pattern": "(^|\\s)/etc/", "description": "写入 /etc" },
+    { "id": "net-curl-sh", "category": "网络副作用", "pattern": "curl\\s+[^|\\n]*\\|\\s*(sh|bash|zsh)", "description": "下载并直接执行脚本" },
+    { "id": "net-wget-bash", "category": "网络副作用", "pattern": "wget\\s+[^|\\n]*-O-\\s*\\|\\s*(sh|bash|zsh)", "description": "下载并直接执行脚本" },
+    { "id": "net-npm-global", "category": "网络副作用", "pattern": "npm\\s+(i|install|add)\\s+(-g|--global)", "description": "全局安装 npm 包" },
+    { "id": "net-pip-system", "category": "网络副作用", "pattern": "pip\\s+install(?!\\s+--user)", "description": "安装 Python 包到系统环境" },
+    { "id": "secret-env", "category": "凭据与密钥", "pattern": "\\.env\\b", "description": "读取/改写环境变量文件" },
+    { "id": "secret-ssh-key", "category": "凭据与密钥", "pattern": "id_rsa|id_ed25519|\\.ssh/", "description": "访问 SSH 私钥" },
+    { "id": "process-kill9", "category": "进程与服务", "pattern": "kill\\s+-9", "description": "强制终止进程" },
+    { "id": "db-drop", "category": "数据库", "pattern": "\\b(DROP|TRUNCATE)\\s+(TABLE|DATABASE|SCHEMA)\\b", "description": "删除数据库对象" }
+  ]
+}

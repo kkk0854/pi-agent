@@ -1,0 +1,39 @@
+# 依赖与构建产物
+node_modules/
+dist/
+*.tsbuildinfo
+
+# 测试与覆盖率
+coverage/
+
+# 日志与本地数据
+logs/
+*.log
+
+# host 运行时令牌文件（绝不入库）
+host.json
+
+# 编辑器
+.idea/
+.vscode/
+*.swp
+
+# 系统文件
+Thumbs.db
+.DS_Store
+
+# pnpm bin shim 失败残留 / 工具临时文件
+_tmp_*
+.pwsh-*
+snap.yaml
+.playwright-cli/
+cleanup-result.txt
+.e2e-data/
+
+# Tauri 桌面壳构建产物与本地工具链 shim（不入库）
+src-tauri/target/
+src-tauri/binaries/
+src-tauri/gen/
+src-tauri/.cargo/shim/
+*.cjs.bak
+*.rs.bak

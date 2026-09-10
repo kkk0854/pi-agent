@@ -1,0 +1,307 @@
+classDiagram
+    class AgentRuntime {
+        <<interface>>
+        +kind: "host"|"mock"
+        +caps: RuntimeCapabilities
+        +init(cfg: RuntimeInitConfig) Promise~RuntimeCapabilities~
+        +dispose() Promise~void~
+        +onEvent(h: EventHandler) Unsubscribe
+        +probe() Promise~PiProbeResult~
+        +openSession(req: OpenSessionRequest) Promise~SessionHandle~
+        +closeSession(sessionId, recycle?) Promise~void~
+        +send(input: SendInput) Promise~SendAck~
+        +steer(sessionId, msg, images?) Promise~void~
+        +followUp(sessionId, msg, images?) Promise~void~
+        +abort(sessionId) Promise~void~
+        +abortBash(sessionId) Promise~void~
+        +clearQueue(sessionId) Promise~void~
+        +bash(sessionId, cmd, exclude?) Promise~void~
+        +setModel(sessionId, provider, modelId) Promise~void~
+        +cycleModel(sessionId) Promise~void~
+        +getAvailableModels() Promise~ModelRef[]~
+        +setThinkingLevel(sessionId, level) Promise~void~
+        +setSteeringMode(sessionId, mode) Promise~void~
+        +setFollowUpMode(sessionId, mode) Promise~void~
+        +compact(sessionId, instructions?) Promise~void~
+        +setAutoCompaction(sessionId, on) Promise~void~
+        +setAutoRetry(sessionId, on) Promise~void~
+        +respondExtensionUI(sessionId, id, resp) Promise~void~
+        +fork(sessionId, entryId) Promise~ForkResult~
+        +clone(sessionId) Promise~ForkResult~
+        +switchSession(sessionId, path) Promise~void~
+        +getTree(sessionId) Promise~TreeResult~
+        +getForkMessages(sessionId) Promise~ForkPoint[]~
+        +getEntries(sessionId, since?) Promise~SessionEntry[]~
+        +getMessages(sessionId) Promise~AgentMessage[]~
+        +setSessionName(sessionId, name) Promise~void~
+        +exportHtml(sessionId, out?) Promise~string~
+        +getState(sessionId) Promise~RpcSessionState~
+        +getSessionStats(sessionId) Promise~SessionStats~
+        +getCommands(sessionId) Promise~SlashCommand[]~
+    }
+
+    class RuntimeCapabilities {
+        +mode: "real"|"mock"
+        +piVersion?: string
+        +piPath?: string
+        +reason?: string
+        +supports: CapabilityFlags
+    }
+    class RuntimeInitConfig {
+        +mode: "auto"|"real"|"mock"
+        +host?: HostEndpoint
+        +piPath?: string
+        +maxConcurrentAgents: number
+        +idleRecycleMs: number
+        +connectTimeoutMs: number
+        +uiRequestTimeoutMs: number
+        +approvalTimeoutPolicy: "deny"|"allow"
+        +stallWarnMs: number
+        +mock?: MockProfile
+    }
+    class SessionHandle {
+        +appSessionId: string
+        +piSessionId?: string
+        +sessionFile?: string
+        +status: SessionStatus
+        +caps: RuntimeCapabilities
+    }
+    class OpenSessionRequest {
+        +appSessionId: string
+        +projectPath?: string
+        +worktreePath?: string
+        +piSessionPath?: string
+        +piSessionId?: string
+        +model?: ModelRef
+        +thinking?: Thinking
+        +tools?: string[]
+        +permissionTier: PermissionTier
+        +extraArgs?: string[]
+    }
+    class SendInput {
+        +sessionId: string
+        +text: string
+        +images?: ImageAttachment[]
+        +behavior?: "steer"|"followUp"
+    }
+
+    class HostAgentRuntime {
+        -bridge: HostBridge
+        -channels: Map~string, AgentChannel~
+        -normalizer: PiFrameNormalizer
+        -pending: Map~string, Deferred~
+        +init(cfg)
+        +send(input)
+        +respondExtensionUI(id, resp)
+    }
+    class MockAgentRuntime {
+        -producer: MockFrameProducer
+        -normalizer: PiFrameNormalizer
+        -pending: Map~string, Deferred~
+        +send(input)
+        +respondExtensionUI(id, resp)
+    }
+    class PiFrameNormalizer {
+        +push(line: string) RuntimeEvent[]
+        +pushMany(lines: string[]) RuntimeEvent[]
+        -onMessageUpdate(frame)
+        -onToolExec(frame)
+        -onUiRequest(frame)
+        -onResponse(frame)
+    }
+    class MockFrameProducer {
+        +profile: MockProfile
+        +start(emit: LinesEmitter) void
+        +handleCommand(obj: unknown) void
+        +stop() void
+    }
+    class StreamCoalescer {
+        -buf: Map~BlockKey, string~
+        -timer: number
+        +enqueue(e: RuntimeEvent) void
+        +flushNow() void
+    }
+
+    class HostBridge {
+        <<interface>>
+        +kind: "http"|"tauri"|"noop"
+        +agent: AgentTransport
+        +workspace: WorkspaceApi
+        +fs: FsApi
+        +system: SystemApi
+        +media: MediaApi
+        +init(cfg) Promise~void~
+    }
+    class AgentTransport {
+        <<interface>>
+        +open(opts, onLines, onStatus) Promise~AgentChannel~
+    }
+    class AgentChannel {
+        <<interface>>
+        +sessionId: string
+        +status: ChannelStatus
+        +writeLine(obj: unknown) void
+        +close(recycle?) Promise~void~
+    }
+    class FsApi {
+        <<interface>>
+        +readText(p, maxBytes?) Promise~string~
+        +writeText(p, content) Promise~void~
+        +listDir(p) Promise~DirEntry[]~
+        +searchFiles(root, q, limit?) Promise~string[]~
+        +openExternal(p) Promise~void~
+        +watch(p, cb) Promise~Unsubscribe~
+    }
+    class SystemApi {
+        <<interface>>
+        +notify(input) Promise~void~
+        +getSecret(k) Promise~string~
+        +setSecret(k, v) Promise~void~
+        +windowControls?: WindowControls
+        +openLogsDir() Promise~void~
+    }
+    class MediaApi {
+        <<interface>>
+        +url(absPath) string
+        +thumbnail(absPath) Promise~string~
+    }
+    class HttpHostBridge {
+        -endpoint: HostEndpoint
+        -ws: WebSocket
+    }
+    class TauriHostBridge {
+        -invoke: TauriInvoke
+    }
+    class NoopHostBridge
+
+    class SessionManager {
+        -channels: Map~string, PiProcess~
+        -budget: ProcessBudget
+        +open(req) Promise~PiProcess~
+        +close(sessionId, recycle?) Promise~void~
+        +recycleIdle(now) void
+        +killAll() void
+    }
+    class PiProcess {
+        -child: ChildProcess
+        -buf: string
+        +sessionId: string
+        +status: ChannelStatus
+        +write(obj: unknown) void
+        +onLines(cb: LinesEmitter) void
+        +onExit(cb) void
+        +killTree() Promise~void~
+    }
+    class ProcessBudget {
+        +maxConcurrent: number
+        +idleMs: number
+        +acquire() Promise~void~
+        +release(id: string) void
+    }
+    class PiBridge {
+        -proc: PiProcess
+        -ws: WebSocket
+        +pump(lines: string[]) void
+    }
+    class CrashClassifier {
+        +classify(code, stderr) RuntimeErrorCode
+    }
+
+    class PermissionPolicyEngine {
+        +decide(req: ApprovalRequest, tier, scope) Decision
+        +isRisky(toolName, args) RiskLevel
+        +remember(sessionId, key, value) void
+    }
+    class ApprovalRequest {
+        +id: string
+        +sessionId: string
+        +toolName: string
+        +args: unknown
+        +risk: RiskLevel
+        +timeoutMs: number
+    }
+    class Decision {
+        +allow: boolean
+        +scope: "once"|"session"|"deny"
+        +auto?: boolean
+        +reason?: string
+    }
+    class ApprovalAudit {
+        +ts: number
+        +sessionId: string
+        +toolName: string
+        +argsDigest: string
+        +tier: PermissionTier
+        +result: "allow"|"deny"|"timeout"
+        +risk: RiskLevel
+        +append(entry) void
+        +export() Promise~string~
+    }
+
+    class WorkspaceStore {
+        +projects: Project[]
+        +sessions: AppSession[]
+        +automations: Automation[]
+        +usage: UsageBucket[]
+        +saveThrottled() void
+        +flush() Promise~void~
+    }
+    class AppSession {
+        +id: string
+        +projectId?: string
+        +title: string
+        +piSessionPath?: string
+        +piSessionId?: string
+        +status: SessionStatus
+        +archived: boolean
+        +updatedAt: number
+        +permissionTier?: PermissionTier
+    }
+
+    class Logger {
+        +info(msg, meta?) void
+        +warn(msg, meta?) void
+        +error(msg, meta?) void
+        -redact(s: string) string
+    }
+
+    AgentRuntime <|.. HostAgentRuntime
+    AgentRuntime <|.. MockAgentRuntime
+    AgentRuntime ..> RuntimeCapabilities
+    AgentRuntime ..> RuntimeInitConfig
+    AgentRuntime ..> SessionHandle
+    AgentRuntime ..> OpenSessionRequest
+    AgentRuntime ..> SendInput
+
+    HostAgentRuntime --> HostBridge
+    HostAgentRuntime --> PiFrameNormalizer
+    HostAgentRuntime --> StreamCoalescer
+    MockAgentRuntime --> MockFrameProducer
+    MockAgentRuntime --> PiFrameNormalizer
+
+    PiFrameNormalizer ..> RuntimeEvent
+    StreamCoalescer ..> RuntimeEvent
+
+    HostBridge <|.. HttpHostBridge
+    HostBridge <|.. TauriHostBridge
+    HostBridge <|.. NoopHostBridge
+    HostBridge *-- AgentTransport
+    HostBridge *-- FsApi
+    HostBridge *-- SystemApi
+    HostBridge *-- MediaApi
+    AgentTransport ..> AgentChannel
+
+    HttpHostBridge ..> SessionManager : WS / REST
+    SessionManager *-- PiProcess
+    SessionManager *-- ProcessBudget
+    PiProcess <-- PiBridge
+    PiProcess ..> CrashClassifier
+    SessionManager ..> Logger
+
+    HostAgentRuntime --> PermissionPolicyEngine
+    PermissionPolicyEngine ..> ApprovalRequest
+    PermissionPolicyEngine ..> Decision
+    PermissionPolicyEngine ..> ApprovalAudit
+
+    HttpHostBridge ..> WorkspaceStore
+    WorkspaceStore *-- AppSession

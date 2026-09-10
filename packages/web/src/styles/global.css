@@ -1,0 +1,97 @@
+/* 全局样式：Tailwind 4 桥接设计令牌 + 滚动条/基础排版修正（架构 §2.5 global.css） */
+@import 'tailwindcss';
+@import './tokens.css';
+
+/* class 驱动的暗色变体（默认的 prefers-color-scheme 无法满足手动切换） */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* 设计令牌 → Tailwind 主题映射（bg-bg / text-text / border-line 等 utility 可用） */
+@theme inline {
+  --color-bg: var(--pa-bg);
+  --color-elevated: var(--pa-bg-elevated);
+  --color-panel: var(--pa-panel);
+  --color-line: var(--pa-border);
+  --color-text: var(--pa-text);
+  --color-secondary: var(--pa-text-secondary);
+  --color-muted: var(--pa-text-muted);
+  --color-accent: var(--pa-accent);
+  --color-accent-hover: var(--pa-accent-hover);
+  --color-accent-soft: var(--pa-accent-soft);
+  --color-running: var(--pa-running);
+  --color-success: var(--pa-success);
+  --color-warning: var(--pa-warning);
+  --color-danger: var(--pa-danger);
+  --radius-card: var(--pa-radius);
+  --font-sans: var(--pa-font-sans);
+  --font-mono: var(--pa-font-mono);
+}
+
+/* 基础排版：无漏主题的底色 */
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--pa-bg);
+  color: var(--pa-text);
+  font-family: var(--pa-font-sans);
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 滚动条（亮暗两套） */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--pa-border) transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background-color: var(--pa-border);
+  border-radius: 4px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--pa-text-muted);
+}
+
+/* 状态小圆点：运行中蓝脉冲（PRD §9.3；失败红仅小圆点） */
+@keyframes pa-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.pa-dot-running {
+  background-color: var(--pa-running);
+  animation: pa-pulse 1.6s ease-in-out infinite;
+}
+.pa-dot-idle {
+  background-color: var(--pa-text-muted);
+}
+.pa-dot-needs-input {
+  background-color: var(--pa-warning);
+}
+.pa-dot-error {
+  background-color: var(--pa-danger);
+}
+.pa-dot-success {
+  background-color: var(--pa-success);
+}
+
+/* 文本选区跟随主题 */
+::selection {
+  background-color: var(--pa-accent-soft);
+}

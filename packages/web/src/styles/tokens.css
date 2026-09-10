@@ -1,0 +1,65 @@
+/**
+ * 设计令牌（架构 §2.5 styles/tokens.css）：
+ * 亮色为默认；暗色为同一套令牌反转（.dark 作用域）。
+ * 命名一律 --pa-* 前缀（架构 §8.2）。
+ * 状态色语义（PRD §9.3）：运行中蓝（脉冲）· 成功绿 · 待处理橙 · 失败红（仅小圆点/短提示）。
+ */
+:root {
+  color-scheme: light;
+
+  /* 背景 / 面板 */
+  --pa-bg: #f6f7f9;
+  --pa-bg-elevated: #ffffff;
+  --pa-panel: #ffffff;
+  --pa-border: #e3e6ea;
+
+  /* 文本 */
+  --pa-text: #191c1f;
+  --pa-text-secondary: #4b5158;
+  --pa-text-muted: #8b929c;
+
+  /* 强调色（蓝/青） */
+  --pa-accent: #2563eb;
+  --pa-accent-hover: #1d4ed8;
+  --pa-accent-soft: rgba(37, 99, 235, 0.12);
+
+  /* 状态色 */
+  --pa-running: #2563eb;
+  --pa-success: #16a34a;
+  --pa-warning: #ea580c;
+  --pa-danger: #dc2626;
+
+  /* 形状与字体 */
+  --pa-radius: 10px;
+  --pa-font-sans: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', system-ui, -apple-system, sans-serif;
+  --pa-font-mono: Consolas, 'Cascadia Code', 'JetBrains Mono', 'Courier New', monospace;
+
+  /* 阴影（克制） */
+  --pa-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --pa-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.dark {
+  color-scheme: dark;
+
+  --pa-bg: #101214;
+  --pa-bg-elevated: #181b1f;
+  --pa-panel: #16181c;
+  --pa-border: #2a2f36;
+
+  --pa-text: #e8eaed;
+  --pa-text-secondary: #b4bac2;
+  --pa-text-muted: #7d848e;
+
+  --pa-accent: #3b82f6;
+  --pa-accent-hover: #60a5fa;
+  --pa-accent-soft: rgba(59, 130, 246, 0.18);
+
+  --pa-running: #3b82f6;
+  --pa-success: #22c55e;
+  --pa-warning: #f97316;
+  --pa-danger: #ef4444;
+
+  --pa-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --pa-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+}

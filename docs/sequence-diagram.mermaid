@@ -1,0 +1,121 @@
+sequenceDiagram
+    autonumber
+    actor U as 用户
+    participant App as web/main.tsx
+    participant CR as createRuntime
+    participant HB as HostBridge
+    participant HOST as host 服务
+    participant SM as SessionManager
+    participant PI as pi --mode rpc
+    participant EXT as 内置扩展 permissions
+    participant NORM as PiFrameNormalizer
+    participant PE as PermissionPolicyEngine
+    participant SC as StreamCoalescer
+    participant ST as transcriptStore
+    participant MB as MessageBlock / ApprovalBar
+
+    Note over App,PI: ① 启动探测与握手（无 ready 帧）
+    App->>CR: createRuntime({ mode: "auto" })
+    CR->>HB: init(window.__PI_AGENT_HOST__)
+    alt host 不可达
+        HB-->>CR: kind: "noop"
+        CR-->>App: MockAgentRuntime（明示「离线 Mock 模式」）
+    else host 可达
+        CR->>HOST: GET /v1/health
+        HOST-->>CR: { ok, pi: { found, version, path } }
+        alt pi 未找到 或 mode === "mock"
+            CR-->>App: MockAgentRuntime（顶部显示 Mock 徽章 + 安装指引）
+        else 真实模式
+            CR-->>App: HostAgentRuntime（caps 来自版本矩阵）
+        end
+    end
+
+    App->>CR: openSession({ appSessionId, projectPath, tools, permissionTier })
+    CR->>HOST: WS 打开通道
+    HOST->>SM: acquire()（并发上限 3，超限排队）
+    SM->>PI: spawn(pi.cmd, ["--mode","rpc","--session",path,"--tools",...,"--extension",内置扩展], { cwd, shell:true, windowsHide:true })
+    Note over SM,PI: 不等待 ready 帧（实测不存在）
+    HOST->>PI: {"id":"h1","type":"get_state"}
+    PI-->>HOST: extension_ui_request setStatus（先到，仅转发不算失败）
+    alt 8s 内收到 response{id:"h1"}
+        PI-->>HOST: {"type":"response","id":"h1","success":true,"data":{...state}}
+        HOST-->>CR: lines[] + status "open"
+        CR-->>App: session.status "ready" + session.state
+    else 超时
+        HOST-->>CR: status "error" / code connect_timeout
+        CR-->>App: 错误卡片（cli_not_found / auth / network / crash）+ 重新连接
+    end
+
+    Note over U,MB: ② 发送消息 → 流式渲染 → agent_settled
+    U->>App: 输入 + Enter（运行中 Ctrl+Enter=steer，排队=followUp）
+    App->>CR: send({ sessionId, text, images, behavior })
+    CR->>PI: {"id":"p1","type":"prompt"|"steer"|"follow_up", ...}
+    PI-->>CR: {"type":"response","id":"p1","success":true}
+    CR-->>App: SendAck{ turnId, accepted: "started"|"queued" }
+
+    loop 事件流（NDJSON 原始行 → normalizer）
+        PI-->>HOST: message_update{ assistantMessageEvent:{type:"text_start",contentIndex:0,partial} }
+        HOST-->>NORM: pushMany(lines)
+        NORM-->>SC: block.start{ blockIndex:0, kind:"text" }
+        PI-->>HOST: message_update{ ...{type:"text_delta",contentIndex:0,delta:"我先"} }
+        NORM-->>SC: block.delta{ blockIndex:0, delta:"我先" }
+        PI-->>HOST: message_update{ ...{type:"thinking_start",contentIndex:1} }
+        NORM-->>SC: block.start{ blockIndex:1, kind:"thinking" }
+        SC->>SC: 48ms 批量合并（rAF）
+        SC->>ST: 一次批量 patch（仅受影响 block）
+        ST-->>MB: 订阅该 blockId 的组件重渲染
+    end
+
+    Note over PI,MB: ③ 工具调用 + 权限审批拦截
+    PI->>EXT: beforeToolCall(toolName, args)
+    EXT->>EXT: 判定风险等级（危险清单：rm -rf / force push / sudo / 系统目录 / .env，A-13 可配）
+    EXT->>PI: ctx.ui.confirm({ title, message, timeout })
+    PI-->>HOST: {"type":"extension_ui_request","id":"c1","method":"confirm",...}
+    HOST-->>NORM: push(line)
+    NORM-->>PE: ui.request(ApprovalRequest)
+    alt 策略放行（②档非危险 / ①档 / 本会话已放行）
+        PE->>HOST: extension_ui_response{ id:"c1", confirmed:true }
+        PE->>PE: audit.jsonl 记 auto-allow
+        PE-->>ST: 插入「已自动放行」折叠记录
+    else 需询问（③档 / 命中危险清单）
+        PE-->>MB: 渲染审批条（单次放行 / 本会话放行 / 拒绝，危险操作醒目样式）
+        U->>MB: 点击决策
+        MB->>PE: Decision{ allow, scope }
+        PE->>HOST: extension_ui_response{ id:"c1", confirmed }
+        PE->>PE: audit.jsonl 记 allow / deny
+    end
+    Note over PE: 超时 30s（A-14 默认 deny，可配）→ 按策略兜底并记 audit(timeout)<br/>③档默认拒绝，绝不无限挂起轮次
+    HOST->>PI: stdin 写响应行
+    PI->>EXT: confirm 返回值
+    EXT->>PI: allow / deny（deny 注入工具错误结果）
+    PI-->>HOST: tool_execution_start / _update / _end
+    NORM-->>SC: tool.start / tool.update / tool.end
+
+    PI-->>HOST: agent_end{ messages }
+    NORM-->>SC: agent.end（UI 仍显示运行中）
+    PI-->>HOST: agent_settled{ willRetry:false }
+    NORM-->>SC: agent.settled
+    SC->>ST: flushNow()（强制落盘，节流 ≥500ms）
+    Note over ST: 只有 agent.settled 才置 status "ready"
+
+    Note over U,MB: ④ 会话分叉
+    U->>MB: 消息操作 →「从此处分叉」
+    App->>CR: getForkMessages(sessionId)
+    CR->>PI: {"type":"get_fork_messages"}
+    PI-->>CR: response{ data: {...可分叉点} }
+    App->>CR: fork(sessionId, entryId)
+    CR->>PI: {"id":"f1","type":"fork","entryId"}
+    PI-->>CR: response{ data:{ sessionId, sessionFile } }
+    CR->>HOST: POST /v1/workspace/sessions（parentId=源，piSessionPath=新文件）
+    HOST-->>CR: AppSession
+    CR->>SM: open(新会话)（占用并发槽）
+    CR-->>App: ForkResult → 跳转 + 分支树 get_tree 刷新
+    Note over App: 源会话不被修改
+
+    Note over CR,ST: ⑤ Mock 降级（同构帧）
+    CR->>CR: probe() → not found / 强制 mock
+    CR-->>App: MockAgentRuntime（caps.reason 明示）
+    App->>CR: send(...)
+    CR->>CR: MockFrameProducer 生成 JSONL 字符串行<br/>（含 contentIndex delta / tool_execution_* / extension_ui_request / compaction / error）
+    CR-->>NORM: 同一个 normalizer
+    NORM-->>ST: RuntimeEvent[]（与真实路径完全一致，前端无 Mock 分支）
