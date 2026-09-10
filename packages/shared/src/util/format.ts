@@ -10,9 +10,11 @@ export function formatDurationMs(ms: number): string {
   if (totalSec < 60) return `${totalSec.toFixed(1)}s`;
   const totalMin = Math.floor(totalSec / 60);
   const sec = Math.round(totalSec % 60);
-  if (totalMin < 60) return `${totalMin}m ${sec.toString().padStart(2, '0')}s`;
-  const h = Math.floor(totalMin / 60);
-  const m = totalMin % 60;
+  // 进位：round(59.9)=60 时应进位到下一分钟（如 119.9s → '2m 00s' 而非 '1m 60s'）
+  const carry = Math.floor(totalMin + sec / 60);
+  if (carry < 60) return `${carry}m ${(sec % 60).toString().padStart(2, '0')}s`;
+  const h = Math.floor(carry / 60);
+  const m = carry % 60;
   return `${h}h ${m.toString().padStart(2, '0')}m`;
 }
 
