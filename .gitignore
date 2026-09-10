@@ -37,3 +37,6 @@ src-tauri/gen/
 src-tauri/.cargo/shim/
 *.cjs.bak
 *.rs.bak
+
+# CI 产物下载目录（不入库）
+release/
