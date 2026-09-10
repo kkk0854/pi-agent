@@ -38,12 +38,20 @@ pub fn run() {
             let (kb_port, kb_token) = keybridge::start_bridge()
                 .map_err(|e| format!("keybridge 启动失败：{e}"))?;
 
-            // 2) sidecar host（Z-01）：未打包时给出可读错误
-            let exe = sidecar::find_sidecar_exe()
-                .ok_or("sidecar exe 未找到：请先运行 node scripts/make-sidecar.mjs")?;
-            let script = sidecar::find_host_script(app.handle())
-                .ok_or("pi-agent-host.cjs 未找到：请先运行 node scripts/make-sidecar.mjs")?;
-            sidecar::spawn_and_monitor(app.handle().clone(), exe, script, kb_port, kb_token);
+            // 2) sidecar host（Z-01）：找不到不阻断启动——窗口照常开，前端走离线/Mock
+            match (
+                sidecar::find_sidecar_exe(),
+                sidecar::find_host_script(app.handle()),
+            ) {
+                (Some(exe), Some(script)) => {
+                    sidecar::spawn_and_monitor(app.handle().clone(), exe, script, kb_port, kb_token);
+                }
+                (exe, script) => {
+                    eprintln!(
+                        "[pi-agent] sidecar 缺失（exe={exe:?}, script={script:?}），跳过 host 启动，前端将进入离线/Mock 模式"
+                    );
+                }
+            }
 
             // 3) 等端点（host listen 后写 host.json），超时注入 null → 前端离线模式
             let endpoint = sidecar::wait_for_endpoint(8000);

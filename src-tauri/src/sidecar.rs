@@ -85,6 +85,12 @@ pub fn find_sidecar_exe() -> Option<PathBuf> {
         dirs.push(cwd.join("binaries"));
     }
     for dir in dirs {
+        // 安装布局：Tauri externalBin 打平为 <name>.exe（无 triple 后缀），与主程序同级
+        let flat = dir.join("pi-agent-host.exe");
+        if flat.is_file() {
+            return Some(flat);
+        }
+        // 开发布局：<name>-<rustc-triple>.exe
         if let Ok(entries) = std::fs::read_dir(&dir) {
             for e in entries.flatten() {
                 let name = e.file_name().to_string_lossy().to_string();
