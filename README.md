@@ -28,6 +28,25 @@ pnpm -C packages/host dev   # host，写 {appData}/pi-agent/host.json
 pnpm -C packages/web dev    # vite，自动注入 host 端点到 window.__PI_AGENT_HOST__
 ```
 
+## 桌面版（Tauri 2）
+
+```bash
+pnpm install
+pnpm tauri:build   # 串联 make-sidecar（内嵌 Node）→ 前端构建 → Tauri 出包
+```
+
+产物：`src-tauri/target/release/bundle/` 下 `.msi` 与 NSIS `setup.exe`。
+已构建好的安装包放在 `release/`（中/英 `.msi` + NSIS 便携安装器）。
+
+打包要素（均由 `pnpm tauri:build` 自动处理）：
+
+- sidecar：`scripts/make-sidecar.mjs` 用 esbuild 把 host 打成 `pi-agent-host.cjs`，并把本机 node.exe 复制为
+  `pi-agent-host-<rustc host triple>.exe` —— **目标机无需安装 Node**。
+- 资源：`resources` 携带 `pi-agent-host.cjs` 与 `extensions/pi-agent-permissions/`（权限审批扩展）。
+
+> 云端出包：仓库已配 `.github/workflows/tauri-build.yml`，打 tag `v*` 或手动 `workflow_dispatch` 即触发
+> Windows runner 构建并上传安装包产物。
+
 ## 质量检查
 
 ```bash
