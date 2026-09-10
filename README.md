@@ -18,7 +18,7 @@ pnpm workspace 三包：
 
 ```bash
 pnpm install
-pnpm dev        # 同时启动 host 与 web（vite），浏览器打开 http://localhost:5173
+pnpm dev        # 同时启动 host 与 web（vite），启动后访问 http://localhost:5173（dev 脚本不自动开浏览器）
 ```
 
 单独启动：

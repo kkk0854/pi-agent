@@ -58,7 +58,7 @@ package.json（根）           # tauri/tauri:dev/tauri:build/sidecar/icons scri
 
 | 项 | 状态 |
 |---|---|
-| TS typecheck / 测试 / lint | ✅ 0 错误 / 183 测试（56+48+79）/ 0（CI 出包同一份代码） |
+| TS typecheck / 测试 / lint | ✅ 0 错误 / 241 测试（shared 76 + host 67 + web 98，2026-09-10 复核实跑）/ 0（CI 出包同一份代码） |
 | pnpm build 前端产物 | ✅ 本机验证 |
 | sidecar 冒烟（bundle → exe 启动 → listen → host.json） | ✅ 本机验证 |
 | Rust 编译 + 打包（.msi/NSIS） | ✅ **GitHub Actions Run #4 验证**（本机环境崩溃绕过） |
@@ -89,13 +89,13 @@ package.json（根）           # tauri/tauri:dev/tauri:build/sidecar/icons scri
 
 ## 5. 遗留
 - macOS .dmg：工作流仅 Windows；跨平台需加 macos-latest job（配置结构已就绪）。
-- Z-05 自动更新：updater 通道仅骨架。
+- Z-05 自动更新：updater 通道未配置（本轮不做，见 §6 分类）。
 - cli.rs（E-06）：命令骨架，未做独立 CLI 发布。
 - 待用户安装后验证 M15 五项（见上表）。
 
 ## 6. 全项目收尾清单（PRD 171 条分类）
 
-**总计：已覆盖 128 / 仅骨架 15 / 本轮不做 28**（按模块汇总，判定依据 = 代码证据 + T01–T05 任务报告）：
+**总计：已实现 128 / 仅骨架 9 / 本轮不做 34 = 171 条**（按模块汇总，判定依据 = 代码证据 + T01–T05 任务报告；2026-09-10 文档-实现一致性复核修正，与 `CHANGELOG.md` 对齐）：
 
 | 模块 | 覆盖 | 骨架 | 不做 | 说明 |
 |---|---|---|---|---|
@@ -104,25 +104,25 @@ package.json（根）           # tauri/tauri:dev/tauri:build/sidecar/icons scri
 | C 会话（7） | 6 | 0 | 1 | C-07 会话内查找不做 |
 | D 媒体（7） | 5 | 1 | 1 | D-05 Office 预览骨架；D-06 长图不做 |
 | E 本地 REST（6） | 4 | 2 | 0 | E-05 幂等键内存版；E-06 CLI 骨架 |
-| F 分叉（6） | 3 | 1 | 2 | F-03 分支树骨架；F-05/F-06 参考会话不做 |
-| G worktree（6） | 2 | 4 | 0 | G-01/02 可用；G-03..06 501 骨架 |
+| F 分叉（6） | 4 | 0 | 2 | F-03 分支树（`features/branch/BranchTree.tsx`）已实现；F-05/F-06 参考会话不做 |
+| G worktree（6） | 2 | 0 | 4 | G-01/02 可用；G-03..06 仅 501 占位，计入本轮不做 |
 | I IM 桥接（6） | 0 | 0 | 6 | 整模块本轮不做 |
-| K 看板（4） | 0 | 0 | 4 | 整模块本轮不做 |
+| K 看板（4） | 2 | 0 | 2 | K-01 四列看板 / K-02 卡片跳转已实现（`features/kanban/KanbanView.tsx`）；K-03/04 不做 |
 | M 模型/上下文（10） | 8 | 0 | 2 | M-09 偏好范围、M-10 模型路由不做 |
-| N 运行时（13） | 12 | 1 | 0 | N-12 Ghost 自愈骨架 |
-| P 项目（9） | 7 | 0 | 2 | P-07 导入历史、P-08 规则文件不做 |
+| N 运行时（13） | 11 | 0 | 2 | N-12 Ghost 自愈、N-13 主聊天虚拟化未实现，计入不做 |
+| P 项目（9） | 6 | 0 | 3 | P-07 导入历史、P-08 规则文件、P-09 虚拟化列表不做 |
 | Q 账号/密钥/用量（7） | 5 | 0 | 2 | Q-06 多账号、Q-07 额度不做 |
 | R 运行时抽象（9） | 9 | 0 | 0 | T01 全量 |
 | S 外观/快捷键（7） | 6 | 1 | 0 | S-05 自定义外观骨架 |
 | T 时间线/输入（14） | 11 | 1 | 2 | T-10 拖拽分流骨架；T-11/T-12 不做 |
 | U 自动化/托盘（7） | 7 | 0 | 0 | T04b + T05 U-07 |
-| V 设置（7） | 7 | 0 | 0 | 含 V-05 深链、V-06 双语 |
+| V 设置（7） | 6 | 1 | 0 | V-05 深链已实现；V-06 双语仅骨架（当前中文，i18n 框架预留） |
 | W 工具面板（9） | 8 | 0 | 1 | W-09 工具统计不做 |
 | X 扩展生态（7） | 4 | 3 | 0 | X-05/06/07 骨架 |
-| Z 桌面壳（10） | 6 | 1 | 3 | Z-05 updater 骨架；Z-07/08/09 不做 |
+| Z 桌面壳（10） | 6 | 0 | 4 | Z-05 updater、Z-07/08/09 不做（updater 通道未配置） |
 
 ## 7. 用户启动指引
 - **仓库**：https://github.com/kkk0854/pi-agent（私有，main）
-- **Web 版**：克隆后 `pnpm install && pnpm dev`（host + web 并起，浏览器自动打开；无 pi CLI 时自动降级 Mock 后端）
+- **Web 版**：克隆后 `pnpm install && pnpm dev`（host + web 并起；启动后手动访问 http://localhost:5173，dev 脚本不会自动开浏览器；无 pi CLI 时自动降级 Mock 后端）
 - **桌面版**：下载 `release/` 下 `pi-agent_0.1.0_x64_zh-CN.msi` 安装，或免安装运行 `pi-agent_0.1.0_x64-setup.exe`；以后打 tag `v*` 推送即自动出包（.github/workflows/tauri-build.yml）
 - **桌面版架构**：Rust 壳内嵌 sidecar（esbuild 打包的 host + node 运行时，目标机无需装 Node），webview 加载同一份前端产物；密钥入 Windows Credential Manager，关窗驻留托盘

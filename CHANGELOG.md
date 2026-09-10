@@ -32,6 +32,6 @@
 - **T04b** 本地 REST sessionApi、手机镜像、自动化调度、git worktree、用量热力图、扩展面板
 - **T05** Tauri 2 桌面壳：内嵌 Node sidecar、Windows 凭据管理器钥匙串、无边框自绘窗控、托盘、审批通知深链
 
-质量门：typecheck 0 错 / **183 测试全绿** / lint 0 错 / CI 云构建出 .msi + NSIS 安装包。
+质量门：typecheck 0 错 / **241 测试全绿**（shared 76 / host 67 / web 98，2026-09-10 一致性复核实跑）/ lint 0 错 / CI 云构建出 .msi + NSIS 安装包。
 
-PRD 171 条覆盖：**已实现 128 / 骨架 15 / 本轮不做 28**，逐条明细见 `docs/REPORTS/T05-DELIVERY-REPORT.md` §6。
+PRD 171 条覆盖：**已实现 128 / 骨架 9 / 本轮不做 34**（2026-09-10 一致性复核修正：K-01/02 看板、F-03 分支树计入已实现；V-06 双语降为骨架；N-12/N-13、P-09、G-03..06、Z-05 计入不做），逐条明细见 `docs/REPORTS/T05-DELIVERY-REPORT.md` §6。

@@ -6,7 +6,7 @@
 | 项目 | `pi-agent`（`pi` coding agent 的图形化工作台） |
 | 版本 | v1.0 · 2026-09-09 |
 | 作者 | 高见远（架构师） |
-| 上游输入 | `docs/PRD.md`（164 需求 / 21 模块）、`docs/PI-RPC-PROTOCOL.md`（实测 pi 0.85.0）、`reference-grok-app/` |
+| 上游输入 | `docs/PRD.md`（v1.0 164 需求 / 21 模块；v1.1 扩至 171 条，见 §11）、`docs/PI-RPC-PROTOCOL.md`（实测 pi 0.85.0）、`reference-grok-app/` |
 | 交付范围 | Web 全量（Phase 0–3）+ Tauri 2 可运行桌面壳（Phase 4） |
 | 关联文件 | `docs/class-diagram.mermaid`、`docs/sequence-diagram.mermaid` |
 
@@ -155,6 +155,10 @@ Mock  producer ──(同构 JSONL 行)─────────────�
 ## 2. 文件列表
 
 > 相对仓库根。★ = Phase 0 必须冻结的契约文件。
+
+> ⚠️ **实现偏差备注（2026-09-10 文档-实现一致性核对）**：本节为设计期文件清单，最终实现存在目录/命名差异，实际以仓库为准：
+> - **host**：设计中的 `workspace/*`（store/projects/sessions/automations/usage/audit/secrets/doctor）与 `extensions/install.ts` 实际落在 `src/server/`（`workspaceStore.ts`、`automations.ts`、`usage.ts`、`secrets.ts`、`doctor.ts`、`extensions.ts`、`routes.permissions.ts` 等）；无独立 `ProcessBudget.ts`（预算逻辑并入 `SessionManager`），亦无 `fs/pathScope.ts`（路径校验内联在 `fs/watcher.ts` 与各 route）。`log/redact.ts` 的脱敏实现落在 `@pi-agent/shared/src/util/redact.ts`，host 侧仅 `log/logger.ts` 做调用。
+> - **web**：多个设计文件合并/改名（`KanbanView`、`SettingsView`（Doctor 并入其中，无 `sections/` 子目录）、`ToolCard`、`MirrorPanel`、`UsageHeatmap`、`AddProjectDialog`、`hostClient.ts`/`workspaceApi.ts`）；`SlashPanel`、`AtFilePanel`、`Attachments`、`StreamBanners`、`MessageBlock`、`HttpHostBridge`、`NoopHostBridge`、`framesink`、`transcriptStore`、`usageStore` 未单列（功能并入 `Composer`/`ChatView`/`ChatTimeline`/`chatStore`/`activityStore` 等）。
 
 ### 2.1 仓库根
 
@@ -1132,6 +1136,8 @@ graph LR
 ## 7. 依赖包列表
 
 > Node v22.22.2 / pnpm 11.22.0 已验证可用；版本取当前主流的保守上界。
+
+> ⚠️ **实现偏差备注（2026-09-10 文档-实现一致性核对）**：最终依赖以各包 `package.json` 为准。显著差异：web 未引入 react-markdown / remark-gfm / rehype-highlight / highlight.js（Markdown 为自研轻量渲染 `features/chat/Markdown.tsx`，无语法高亮）；未引入 @tanstack/react-virtual 与 use-stick-to-bottom（P-09 / N-13 虚拟滚动未实现）；未引入 Radix switch/select/scroll-area/context-menu/collapsible 与 docx-preview / html-to-image / mermaid；新增 `@codemirror/merge`、`codemirror`。根未用 rimraf / concurrently / zx，新增 esbuild、tsx。
 
 ### 7.1 根（devDependencies）
 
