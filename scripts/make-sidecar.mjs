@@ -36,7 +36,7 @@ await esbuild.build({
 // 目标三元组：优先取 rustc 默认 host（与 tauri externalBin 命名一致），失败回退按平台猜测
 import { execFileSync } from 'node:child_process';
 
-function rustcHostTriple(): string | null {
+function rustcHostTriple() {
   try {
     const out = execFileSync('rustc', ['-vV'], { encoding: 'utf8', timeout: 15000 });
     const m = /host:\s*(\S+)/.exec(out);
